@@ -41,13 +41,16 @@ public:
 
   const std::vector<std::shared_ptr<GenericTopicSubscription>>& extension_subscriptions();
 
-private:
+protected:
+  // Changed to protected for localization extension
   std::unique_ptr<glim::TimeKeeper> time_keeper;
   std::unique_ptr<glim::CloudPreprocessor> preprocessor;
 
   std::shared_ptr<glim::AsyncOdometryEstimation> odometry_estimation;
   std::unique_ptr<glim::AsyncSubMapping> sub_mapping;
   std::unique_ptr<glim::AsyncGlobalMapping> global_mapping;
+
+private:
 
   bool keep_raw_points;
   double imu_time_offset;

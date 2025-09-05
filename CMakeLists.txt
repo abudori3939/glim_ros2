@@ -41,6 +41,7 @@ endif()
 ### glim_ros ###
 ament_auto_add_library(glim_ros SHARED
   src/glim_ros/glim_ros.cpp
+  src/glim_ros/glim_ros_localization.cpp
   src/glim_ros/ros_qos.cpp
 )
 target_include_directories(glim_ros PUBLIC
@@ -60,6 +61,14 @@ ament_auto_add_executable(glim_rosnode
   src/glim_rosnode.cpp
 )
 target_link_libraries(glim_rosnode
+  glim_ros
+)
+
+### glim_localization_node ###
+ament_auto_add_executable(glim_localization_node
+  src/glim_localization_node.cpp
+)
+target_link_libraries(glim_localization_node
   glim_ros
 )
 
@@ -101,5 +110,11 @@ if(BUILD_WITH_VIEWER)
     Boost::program_options
   )
 endif()
+
+# Install launch files
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 ament_auto_package()
