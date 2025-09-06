@@ -1,10 +1,12 @@
 #include <glim_ros/glim_ros_localization.hpp>
 
 #include <filesystem>
+#include <fstream>
 #include <boost/format.hpp>
 #include <spdlog/spdlog.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <nlohmann/json.hpp>
 
 #include <gtsam/geometry/Pose3.h>
 #include <glim/util/config.hpp>
@@ -22,38 +24,30 @@ GlimROSLocalization::GlimROSLocalization(const rclcpp::NodeOptions& options)
   // Initialize current pose
   current_pose_ = Eigen::Isometry3d::Identity();
   
-  // Load localization config
+  // Load localization config (temporarily suppress warnings for missing default params)
+  auto current_level = spdlog::get_level();
+  spdlog::set_level(spdlog::level::err);  // Suppress warnings temporarily
   glim::Config config_localization(glim::GlobalConfig::get_config_path("config_localization"));
+  spdlog::set_level(current_level);  // Restore original log level
   
   // Get parameters from config
   map_path_ = config_localization.param<std::string>("localization", "map_path", "/tmp/dump");
   use_rviz_initial_pose_ = config_localization.param<bool>("localization", "use_rviz_initial_pose", true);
   
-  // Initial pose from config
-  initial_x_ = config_localization.param<double>("localization.initial_pose", "x", 0.0);
-  initial_y_ = config_localization.param<double>("localization.initial_pose", "y", 0.0);
-  initial_z_ = config_localization.param<double>("localization.initial_pose", "z", 0.0);
-  initial_roll_ = config_localization.param<double>("localization.initial_pose", "roll", 0.0);
-  initial_pitch_ = config_localization.param<double>("localization.initial_pose", "pitch", 0.0);
-  initial_yaw_ = config_localization.param<double>("localization.initial_pose", "yaw", 0.0);
+  // Initial pose from config (use correct path format)
+  initial_x_ = config_localization.param<double>("localization/initial_pose", "x", 0.0);
+  initial_y_ = config_localization.param<double>("localization/initial_pose", "y", 0.0);
+  initial_z_ = config_localization.param<double>("localization/initial_pose", "z", 0.0);
+  initial_roll_ = config_localization.param<double>("localization/initial_pose", "roll", 0.0);
+  initial_pitch_ = config_localization.param<double>("localization/initial_pose", "pitch", 0.0);
+  initial_yaw_ = config_localization.param<double>("localization/initial_pose", "yaw", 0.0);
   
-  // Declare and get ROS parameters (can override config)
-  this->declare_parameter<std::string>("map_path", map_path_);
-  this->get_parameter<std::string>("map_path", map_path_);
-  
-  this->declare_parameter<double>("initial_pose.x", initial_x_);
-  this->declare_parameter<double>("initial_pose.y", initial_y_);
-  this->declare_parameter<double>("initial_pose.z", initial_z_);
-  this->declare_parameter<double>("initial_pose.roll", initial_roll_);
-  this->declare_parameter<double>("initial_pose.pitch", initial_pitch_);
-  this->declare_parameter<double>("initial_pose.yaw", initial_yaw_);
-  
-  this->get_parameter<double>("initial_pose.x", initial_x_);
-  this->get_parameter<double>("initial_pose.y", initial_y_);
-  this->get_parameter<double>("initial_pose.z", initial_z_);
-  this->get_parameter<double>("initial_pose.roll", initial_roll_);
-  this->get_parameter<double>("initial_pose.pitch", initial_pitch_);
-  this->get_parameter<double>("initial_pose.yaw", initial_yaw_);
+  // All configuration is primarily from config_localization.json
+  // ROS parameters are minimal and for debug/override purposes only
+  spdlog::info("Localization configuration loaded from config_localization.json");
+  spdlog::info("Map path: {}", map_path_);
+  spdlog::info("Initial pose: [{:.2f}, {:.2f}, {:.2f}] [{:.2f}, {:.2f}, {:.2f}]",
+               initial_x_, initial_y_, initial_z_, initial_roll_, initial_pitch_, initial_yaw_);
   
   // Setup localization-specific interfaces
   setup_localization_interfaces();

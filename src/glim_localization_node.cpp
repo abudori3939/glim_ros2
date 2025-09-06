@@ -6,8 +6,11 @@
 #include <glim/util/config.hpp>
 
 /**
- * @brief Simple launcher node for GLIM localization
+ * @brief GLIM localization node
  * 
+ * Launch with: ros2 run glim_ros localization
+ * 
+ * Configuration is loaded from glim/config/config_localization.json
  * This node creates and runs GlimROSLocalization which extends
  * the standard GlimROS with localization capabilities.
  */
@@ -30,22 +33,8 @@ int main(int argc, char** argv) {
   // Wait for processing to complete
   glim_localization->wait();
   
-  // Optional: Save current state on shutdown
-  std::string dump_path = "/tmp/dump";
-  bool dump_on_shutdown = false;
-  
-  // Parameters should be declared before shutdown
-  try {
-    glim_localization->get_parameter("dump_path", dump_path);
-    glim_localization->get_parameter("dump_on_shutdown", dump_on_shutdown);
-  } catch (...) {
-    // Use defaults if parameters not found
-  }
-  
-  if (dump_on_shutdown) {
-    spdlog::info("Saving current state to: {}", dump_path);
-    glim_localization->save(dump_path);
-  }
+  // Shutdown settings are configured in config_localization.json
+  // No automatic save on shutdown for localization mode by default
   
   return 0;
 }

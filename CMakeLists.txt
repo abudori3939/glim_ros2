@@ -64,11 +64,11 @@ target_link_libraries(glim_rosnode
   glim_ros
 )
 
-### glim_localization_node ###
-ament_auto_add_executable(glim_localization_node
+### localization ###
+ament_auto_add_executable(localization
   src/glim_localization_node.cpp
 )
-target_link_libraries(glim_localization_node
+target_link_libraries(localization
   glim_ros
 )
 
@@ -111,10 +111,5 @@ if(BUILD_WITH_VIEWER)
   )
 endif()
 
-# Install launch files
-install(DIRECTORY
-  launch
-  DESTINATION share/${PROJECT_NAME}
-)
 
 ament_auto_package()
